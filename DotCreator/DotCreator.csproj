@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Authors>Window5</Authors>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SFML.Net" Version="2.5.0" />
+  </ItemGroup>
+
+</Project>
