@@ -11,44 +11,71 @@ using Dot.Event;
 using MouseWheelEvent = Dot.Event.MouseWheelEvent;
 using MouseMoveEvent = Dot.Event.MouseMoveEvent;
 
-public static class Util {
-    public static string getTitle(Window window) {
-        Console.WriteLine(Process.GetCurrentProcess().MainWindowTitle);
-        return Process.GetCurrentProcess().MainWindowTitle;
-    }
-}
-
 namespace Dot {
+
+    public static class Util {
+        public static string getTitle(Window window) {
+            return Process.GetCurrentProcess().MainWindowTitle;
+        }
+
+        // I don't know if this works.
+        public static void Invoke(float seconds, Delegate method, params object[] args) {
+            Clock clock = new Clock();
+            while (clock.ElapsedTime.AsSeconds() < seconds) { }
+            method.DynamicInvoke(args);
+        }
+    }
 
     public class App {
 
-        public event PreStartEvent prestartevent;
-        public event StartEvent startevent;
-        public event PostStartEvent poststartevent;
-        public event RunEvent runevent;
-        public event PostRunEvent postrunevent;
-        public event DrawEvent drawevent;
-        public event CloseEvent closeevent;
-        public event MouseDotClickEvent mousedotclickevent;
-        public event MouseWheelEvent mousewheelevent;
-        public event MouseClickEvent mouseclickevent;
-        public event MouseDotMoveEvent mousedotmoveevent;
-        public event MouseMoveEvent mousemoveevent;
+        public event PreStartEvent? prestartevent;
+        public event StartEvent? startevent;
+        public event PostStartEvent? poststartevent;
+        public event RunEvent? runevent;
+        public event PostRunEvent? postrunevent;
+        public event DrawEvent? drawevent;
+        public event CloseEvent? closeevent;
+        public event MouseDotClickEvent? mousedotclickevent;
+        public event MouseWheelEvent? mousewheelevent;
+        public event MouseClickEvent? mouseclickevent;
+        public event MouseReleaseEvent? mousereleaseevent;
+        public event MouseCoordinateClickEvent? mousecoordinateclickevent;
+        public event MouseCoordinateReleaseEvent? mousecoordinatereleaseevent;
+        public event MouseDotReleaseEvent? mousedotreleaseevent;
+        public event MouseDotMoveEvent? mousedotmoveevent;
+        public event MouseMoveEvent? mousemoveevent;
+        public event MouseCoordinateMoveEvent? mousecoordinatemoveevent;
+        public event KeyPressedEvent? keypressedevent;
+        public event KeyReleasedEvent? keyreleasedevent;
 
         public string title;
+        public Vector2u size;
 
         public List<CircleShape> dots = new List<CircleShape>();
         public RenderWindow window;
 
-        public App(string _title) {
-            title = _title;
+        public override string ToString() {
+            return "[DotCreator App] Title(\"" + title + "\") Size(" + size.X + ", " + size.Y + ")";
         }
 
-        public void run() {
+        public void SetPixel(int pixel, Color color) {
+            dots[pixel].FillColor = color;
+        }
+
+        public Color GetPixel(int pixel) {
+            return dots[pixel].FillColor;
+        }
+
+        public App(string _title) {
+            title = _title;
+            size = new Vector2u(502, 502);
+        }
+
+        public void Run() {
             if (prestartevent != null)
                 if (prestartevent())
                     return;
-            window = new RenderWindow(new VideoMode(502, 502), title, Styles.Close);
+            window = new RenderWindow(new VideoMode(size.X, size.Y), title, Styles.Close);
             window.SetFramerateLimit(60);
             window.SetVerticalSyncEnabled(true);
 
@@ -76,6 +103,10 @@ namespace Dot {
 
             window.MouseButtonPressed += MouseButtonPressed;
             window.MouseWheelScrolled += MouseScrolled;
+            window.MouseButtonReleased += MouseButtonReleased;
+            window.MouseMoved += MouseMoved;
+            window.KeyPressed += KeyPressed;
+            window.KeyReleased += KeyReleased;
 
             if (poststartevent != null)
                 if (poststartevent())
@@ -108,17 +139,52 @@ namespace Dot {
             }
         }
 
+
+
         private void MouseButtonPressed(object sender, MouseButtonEventArgs e) {
-            if (mousedotclickevent != null) {
+            if (mousedotclickevent != null || mousecoordinateclickevent != null) {
                 for (int i = 0; i < dots.Count; i++) {
                     if (e.X < dots[i].Position.X + 42 && e.Y < dots[i].Position.Y + 42) {
-                        mousedotclickevent(i, e.Button);
+                        if (mousedotclickevent != null)
+                            mousedotclickevent(i, e.Button);
+                        if (mousecoordinateclickevent != null) {
+                            int x = 0;
+                            int y = 0;
+                            if (!(dots[i].Position.X == 0))
+                                x = (int) (dots[i].Position.X / 42);
+                            if (!(dots[i].Position.Y == 0))
+                                y = (int) (dots[i].Position.Y / 42);
+                            mousecoordinateclickevent(new Vector2i(x, y), e.Button);
+                        }
                         break;
                     }
                 }
             }
             if (mouseclickevent != null)
                 mouseclickevent(new Vector2f(e.X, e.Y), e.Button);
+        }
+
+        private void MouseButtonReleased(object sender, MouseButtonEventArgs e) {
+            if (mousedotreleaseevent != null || mousecoordinatereleaseevent != null) {
+                for (int i = 0; i < dots.Count; i++) {
+                    if (e.X < dots[i].Position.X + 42 && e.Y < dots[i].Position.Y + 42) {
+                        if (mousedotreleaseevent != null)
+                            mousedotreleaseevent(i, e.Button);
+                        if (mousecoordinatereleaseevent != null) {
+                            int x = 0;
+                            int y = 0;
+                            if (!(dots[i].Position.X == 0))
+                                x = (int) (dots[i].Position.X / 42);
+                            if (!(dots[i].Position.Y == 0))
+                                y = (int) (dots[i].Position.Y / 42);
+                            mousecoordinatereleaseevent(new Vector2i(x, y), e.Button);
+                        }
+                        break;
+                    }
+                }
+            }
+            if (mousereleaseevent != null)
+                mousereleaseevent(new Vector2f(e.X, e.Y), e.Button);
         }
 
         private void MouseScrolled(object sender, MouseWheelScrollEventArgs e) {
@@ -129,18 +195,36 @@ namespace Dot {
         }
 
         private void MouseMoved(object sender, MouseMoveEventArgs e) {
-            if (mousedotmoveevent != null) {
+            if (mousedotmoveevent != null || mousecoordinatemoveevent != null) {
                 for (int i = 0; i < dots.Count; i++) {
                     if (e.X < dots[i].Position.X + 42 && e.Y < dots[i].Position.Y + 42) {
-                        mousedotmoveevent(i);
-                        Console.WriteLine(dots[i].ToString());
+                        if (mousedotmoveevent != null)
+                            mousedotmoveevent(i);
+                        if (mousecoordinatemoveevent != null) {
+                            int x = 0;
+                            int y = 0;
+                            if (!(dots[i].Position.X == 0))
+                                x = (int) (dots[i].Position.X / 42);
+                            if (!(dots[i].Position.Y == 0))
+                                y = (int) (dots[i].Position.Y / 42);
+                            mousecoordinatemoveevent(new Vector2i(x, y));
+                        }
                         break;
                     }
                 }
             }
             if (mousemoveevent != null) {
-
+                mousemoveevent(new Vector2f(e.X, e.Y));
             }
+        }
+
+        private void KeyPressed(object sender, KeyEventArgs e) {
+            if (keypressedevent != null)
+                keypressedevent(e);
+        }
+        private void KeyReleased(object sender, KeyEventArgs e) {
+            if (keyreleasedevent != null)
+                keyreleasedevent(e);
         }
     }
 }
