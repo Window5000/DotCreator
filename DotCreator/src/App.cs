@@ -29,6 +29,37 @@ namespace Dot {
             Thread thread = new Thread(() => Invoker(seconds, method, args));
             thread.Start();
         }
+
+        public static Vector2i GetCoordinate(List<Shape> dots, int i) {
+            int x = 0;
+            int y = 0;
+            if (!(dots[i].Position.X == 0))
+                x = (int) (dots[i].Position.X / 42);
+            if (!(dots[i].Position.Y == 0))
+                y = (int) (dots[i].Position.Y / 42);
+            return new Vector2i(x, y);
+        }
+
+        public static Vector2i GetCoordinate(CircleShape shape) {
+            int x = 0;
+            int y = 0;
+            if (!(shape.Position.X == 0))
+                x = (int) (shape.Position.X / 42);
+            if (!(shape.Position.Y == 0))
+                y = (int) (shape.Position.Y / 42);
+            return new Vector2i(x, y);
+        }
+
+        // Returns a shape if true, or null if false.
+        public static CircleShape? DotExists(List<CircleShape> old, Vector2i neww) {
+            foreach(CircleShape shape in old) {
+                if(GetCoordinate(shape) == neww) {
+                    //Console.WriteLine(shape.Position.ToString() + ", " + neww.ToString());
+                    return shape;
+                }
+            }
+            return null;
+        }
     }
 
     public class App {
@@ -59,6 +90,46 @@ namespace Dot {
         public List<CircleShape> dots = new List<CircleShape>();
         public RenderWindow window;
 
+        public int dotAmountX = 12;
+        public int dotAmountY = 12;
+
+        public bool resizeable = false;
+
+        public int dotSize = 40;
+
+        public Vector2i GetCoordinate(int i) {
+            int x = 0;
+            int y = 0;
+            if (!(dots[i].Position.X == 0))
+                x = (int) (dots[i].Position.X / 42);
+            if (!(dots[i].Position.Y == 0))
+                y = (int) (dots[i].Position.Y / 42);
+            return new Vector2i(x, y);
+        }
+
+        public void ReCalculateDots(Vector2u windowSize, int dotSize) {
+            dotAmountX = (int)windowSize.X / (dotSize + 2);
+            dotAmountY = (int)windowSize.Y / (dotSize + 2);
+
+            Console.WriteLine("X: " + dotAmountX + " Y: " + dotAmountY);
+
+            List<CircleShape> newdots = new List<CircleShape>();
+
+            int i = 0;
+
+            for (int y = 0; y < dotAmountY; y++) {
+                for (int x = 0; x < dotAmountX; x++) {
+                    newdots.Add(new CircleShape(dotSize / 2, 100));
+                    newdots[i].Position = new Vector2f((dotSize + 2) * x, (dotSize + 2) * y);
+                    CircleShape ?olddot = Util.DotExists(dots, new Vector2i(x, y));
+                    newdots[i].FillColor = olddot != null ? olddot.FillColor : Color.Green;
+                    i++;
+                }
+            }
+            dots.Clear();
+            dots = newdots;
+        }
+
         public override string ToString() {
             return "[DotCreator App] Title(\"" + title + "\") Size(" + size.X + ", " + size.Y + ")";
         }
@@ -71,16 +142,17 @@ namespace Dot {
             return dots[pixel].FillColor;
         }
 
-        public App(string _title) {
+        public App(string _title, Vector2u _size, bool _resizeable) {
             title = _title;
-            size = new Vector2u(502, 502);
+            size = _size;
+            resizeable = _resizeable;
         }
 
         public void Run() {
             if (prestartevent != null)
                 if (prestartevent())
                     return;
-            window = new RenderWindow(new VideoMode(size.X, size.Y), title, Styles.Close);
+            window = new RenderWindow(new VideoMode(size.X, size.Y), title, resizeable ? Styles.Default : Styles.Close);
             window.SetFramerateLimit(60);
             window.SetVerticalSyncEnabled(true);
 
@@ -90,16 +162,7 @@ namespace Dot {
 
             dots = new List<CircleShape>();
 
-            int i = 0;
-
-            for (int y = 0; y < 12; y++) {
-                for (int x = 0; x < 12; x++) {
-                    dots.Add(new CircleShape(20.0f, 100));
-                    dots[i].FillColor = Color.Green;
-                    dots[i].Position = new Vector2f(42 * x, 42 * y);
-                    i++;
-                }
-            }
+            ReCalculateDots(size, dotSize);
 
             if (closeevent == null)
                 window.Closed += (_, __) => window.Close();
@@ -112,10 +175,18 @@ namespace Dot {
             window.MouseMoved += MouseMoved;
             window.KeyPressed += KeyPressed;
             window.KeyReleased += KeyReleased;
+            window.Resized += (sender, e) => {
+                window.Size = new Vector2u(e.Width, e.Height);
+                View view = new View(new FloatRect(0.0f, 0.0f, e.Width, e.Height));
+                window.SetView(view);
+                ReCalculateDots(new Vector2u((uint)e.Width, (uint)e.Height), dotSize);
+            };
 
             if (poststartevent != null)
                 if (poststartevent())
                     return;
+
+            int i = 0;
 
             while (window.IsOpen) {
                 window.DispatchEvents();
