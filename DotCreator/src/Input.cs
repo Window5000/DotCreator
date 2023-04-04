@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SFML.Window;
+﻿using SFML.Window;
 
 namespace Dot {
     public class Input {
-        Window window;
-
-        public Input(Window window) {
-            this.window = window;
-        }
-
         public bool GetKey(Keyboard.Key key) {
             return Keyboard.IsKeyPressed(key);
         }

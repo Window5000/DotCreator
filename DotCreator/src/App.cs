@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.Window;
 using System.Diagnostics;
 using SFML.System;
 using Dot.Event;
-using System.Threading;
 using MouseWheelEvent = Dot.Event.MouseWheelEvent;
 using MouseMoveEvent = Dot.Event.MouseMoveEvent;
 
@@ -19,14 +13,12 @@ namespace Dot {
             return Process.GetCurrentProcess().MainWindowTitle;
         }
 
-        private static void Invoker(float seconds, Delegate method, params object[] args) {
-            Clock clock = new Clock();
-            while (clock.ElapsedTime.AsSeconds() < seconds) { }
-            method.DynamicInvoke(args);
-        }
-
         public static void Invoke(float seconds, Delegate method, params object[] args) {
-            Thread thread = new Thread(() => Invoker(seconds, method, args));
+            Thread thread = new Thread(() => {
+                Clock clock = new();
+                while (clock.ElapsedTime.AsSeconds() < seconds) { }
+                method.DynamicInvoke(args);
+            });
             thread.Start();
         }
 

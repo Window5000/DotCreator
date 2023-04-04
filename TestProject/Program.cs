@@ -1,7 +1,6 @@
 ﻿using Dot;
 using SFML.System;
 using SFML.Graphics;
-using SFML.Window;
 
 App app = new App("test", new Vector2u(520, 520), true);
 Clock clock = new Clock();
