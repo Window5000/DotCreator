@@ -76,7 +76,17 @@ namespace Dot {
         public event KeyPressedEvent? keypressedevent;
         public event KeyReleasedEvent? keyreleasedevent;
 
-        public string title;
+        private string _title;
+        public string title {
+            get {
+                return _title;
+            }
+
+            set {
+                _title = value;
+                window.SetTitle(_title);
+            }
+        }
         public Vector2u size;
 
         public List<CircleShape> dots = new List<CircleShape>();
@@ -134,8 +144,8 @@ namespace Dot {
             return dots[pixel].FillColor;
         }
 
-        public App(string _title, Vector2u _size, bool _resizeable) {
-            title = _title;
+        public App(string __title, Vector2u _size, bool _resizeable) {
+            _title = __title;
             size = _size;
             resizeable = _resizeable;
         }
@@ -161,6 +171,10 @@ namespace Dot {
             else
                 window.Closed += (_, __) => closeevent();
 
+            window.SetKeyRepeatEnabled(false);
+            window.KeyPressed += Input.KeyPressed;
+            window.MouseButtonPressed += Input.MouseButtonPressed;
+
             window.MouseButtonPressed += MouseButtonPressed;
             window.MouseWheelScrolled += MouseScrolled;
             window.MouseButtonReleased += MouseButtonReleased;
@@ -178,23 +192,17 @@ namespace Dot {
                 if (poststartevent())
                     return;
 
-            int i = 0;
-
             while (window.IsOpen) {
+                Input.update();
                 window.DispatchEvents();
+
                 if (runevent != null)
                     runevent();
 
-                if (!(Util.getTitle(window).Equals(title))) {
-                    window.SetTitle(title);
-                }
-
                 window.Clear();
 
-                i = 0;
-                while (i < dots.Count) {
-                    window.Draw(dots[i]);
-                    i++;
+                foreach (CircleShape i in dots) {
+                    window.Draw(i);
                 }
 
                 if (drawevent != null)
