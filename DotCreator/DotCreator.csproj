@@ -9,10 +9,15 @@
     <Authors>Window5</Authors>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <Title>Dot Creator</Title>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>SFML; dots; game</PackageTags>
     <PackAsTool>False</PackAsTool>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/Window5000/DotCreator</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
