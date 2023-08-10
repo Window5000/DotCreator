@@ -9,9 +9,6 @@ using MouseMoveEvent = Dot.Event.MouseMoveEvent;
 namespace Dot {
 
     public static class Util {
-        public static string getTitle(Window window) {
-            return Process.GetCurrentProcess().MainWindowTitle;
-        }
 
         public static void Invoke(float seconds, Delegate method, params object[] args) {
             Thread thread = new Thread(() => {
@@ -99,6 +96,8 @@ namespace Dot {
 
         public int dotSize = 40;
 
+        public Color backgroundColor = Color.Green;
+
         public Vector2i GetCoordinate(int i) {
             int x = 0;
             int y = 0;
@@ -124,7 +123,7 @@ namespace Dot {
                     newdots.Add(new CircleShape(dotSize / 2, 100));
                     newdots[i].Position = new Vector2f((dotSize + 2) * x, (dotSize + 2) * y);
                     CircleShape ?olddot = Util.DotExists(dots, new Vector2i(x, y));
-                    newdots[i].FillColor = olddot != null ? olddot.FillColor : Color.Green;
+                    newdots[i].FillColor = olddot != null ? olddot.FillColor : backgroundColor;
                     i++;
                 }
             }
